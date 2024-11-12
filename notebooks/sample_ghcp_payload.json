@@ -1,0 +1,27 @@
+{
+  "copilot_thread_id": "b642f692-530e-43bb-8021-e253aa40e4b1",
+  "messages": [
+    {
+      "role": "user",
+      "content": "good morning",
+      "copilot_confirmation": null,
+      "copilot_references": null,
+      "copilot_errors": null
+    },
+    {
+      "role": "assistant",
+      "content": "Good morning! How can I assist you today?",
+      "copilot_confirmation": null,
+      "copilot_references": null,
+      "copilot_errors": null
+    },
+    {
+      "role": "user",
+      "content": "What are our guidelines for ensuring responsible AI in my UI/UX design?",
+      "copilot_confirmation": null,
+      "copilot_references": null,
+      "copilot_errors": null
+    }
+  ],
+  "agent": ""
+}
