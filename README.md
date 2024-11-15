@@ -7,6 +7,8 @@ This extension is written in Python and is deployed to Azure Functions. It is bu
 ![Copilot Extension in VS Code](./media/vscode-chat.png)
 ![Copilot Extension in GitHub.com](./media/github-chat.png)
 
+![Chat with your data - file upload](./media/chatwithyourdata-upload.png)
+
 ## Pre-requisites
 1. Deployment of the [Chat with Your Data Solution Accelerator](https://github.com/Azure-Samples/chat-with-your-data-solution-accelerator).
   - Upload a few documents to process in the `https://web-...-admin.azurewebsites.net` portal.
