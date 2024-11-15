@@ -55,4 +55,8 @@ def query(req):
     }
     
     ghcp_response_json = json.dumps(ghcp_response)
+    # print("\n-- GHCP Response Response ------------------------\n")
+    # print(ghcp_response)
+    # print("\n---------------------------------------------\n")
+    
     return ghcp_response_json
