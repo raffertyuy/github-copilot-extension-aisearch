@@ -1,11 +1,18 @@
-name: Deploy Azure Function
+name: Deploy Azure Function (Flex Consumption)
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
   id-token: write
   contents: read
+
+env:
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'az-function' # set this to the path to your function app project, defaults to the repository root
+  PYTHON_VERSION: '3.11'                        # set this to the python version to use (e.g. '3.6', '3.7', '3.8')
 
 jobs:
   zip-and-deploy:
@@ -18,17 +25,14 @@ jobs:
     - name: Set up Python version
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: ${{ env.PYTHON_VERSION }}
     
     - name: Build and Package /az-function python app to app.zip
       run: |
-        cd az-function
-
+        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
         python -m pip install --upgrade pip
         pip install -r requirements.txt --target=".python_packages/lib/site-packages"
-        
-        zip -r ../app.zip .
-        cd ..
+        popd
     
     - name: Azure Login
       uses: azure/login@v2
@@ -37,21 +41,19 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     
-    - name: Upload app.zip to Azure Storage
-      run: |
-        az storage blob upload -f 'app.zip' --account-name ${{ vars.AZURE_STORAGE_ACCOUNT }} -c ${{ vars.AZURE_STORAGE_CONTAINER }} -n 'app.zip' --overwrite true --auth-mode login
-        
-        url=$(az storage blob url -c ${{ vars.AZURE_STORAGE_CONTAINER }} -n 'app.zip' --account-name ${{ vars.AZURE_STORAGE_ACCOUNT }} --auth-mode login)
-        echo "Blob URL: $url"
-        echo "blob_url=$url" >> $GITHUB_ENV
-
     - name: Deploy to Azure Function
       run: |
         az functionapp config appsettings set --name ${{ vars.AZURE_FUNCTION_APP_NAME }} -g ${{ vars.AZURE_RESOURCE_GROUP }} \
-          --settings WEBSITE_RUN_FROM_PACKAGE=${{ env.blob_url }} \
-          AzureWebJobsStorage__blobServiceUri='https://${{ vars.AZURE_STORAGE_ACCOUNT }}.blob.core.windows.net' \
+          --settings AzureWebJobsStorage__blobServiceUri='https://${{ vars.AZURE_STORAGE_ACCOUNT }}.blob.core.windows.net' \
           AzureWebJobsStorage__queueServiceUri='https://${{ vars.AZURE_STORAGE_ACCOUNT }}.queue.core.windows.net' \
           AzureWebJobsStorage__tableServiceUri='https://${{ vars.AZURE_STORAGE_ACCOUNT }}.table.core.windows.net' \
-          WEBSITE_RUN_FROM_PACKAGE_BLOB_MI_RESOURCE_ID=${{ vars.WEBSITE_RUN_FROM_PACKAGE_BLOB_MI_RESOURCE_ID }} \
           AI_SEARCH_ENDPOINT=${{ secrets.AI_SEARCH_ENDPOINT }}
-        az functionapp restart --name ${{ vars.AZURE_FUNCTION_APP_NAME }} -g ${{ vars.AZURE_RESOURCE_GROUP }}
+    
+    - name: 'Run Azure Functions Action'
+      uses: Azure/functions-action@v1
+      id: fa
+      with:
+        app-name: ${{ vars.AZURE_FUNCTION_APP_NAME }}
+        package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+        scm-do-build-during-deployment: true
+        enable-oryx-build: true
